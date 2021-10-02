@@ -17,13 +17,13 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class TextProcessingOperations implements ITextStatistics {
 
     private final Logger logger = LoggerFactory.getLogger(TextProcessingOperations.class);
 
     private String textUrl;
-    private Map<String, AtomicInteger> wordsFrequencyMap;
 
     public TextProcessingOperations(String textUrl) {
         this.textUrl = textUrl;
@@ -100,41 +100,11 @@ public class TextProcessingOperations implements ITextStatistics {
         return count;
     }
 
-    // As of now, deprecated.
-    @Deprecated
-    public void proccessText(String url) {
-        InputStream inputStream = null;
-        String text = null;
-
-        try {
-            inputStream = new URL(url).openStream();
-            text = inputStreamToString(inputStream);
-            this.textUrl = url;
-        } catch (IOException e) {
-            // TODO
-            e.printStackTrace();
-        }
-
-        wordsFrequencyMap = new ConcurrentSkipListMap<>();
-        var wordsArray = extractWords(text);
-
-        for (int i = 0; i < wordsArray.length; i++) {
-            final String key = wordsArray[i];
-
-            if (key.length() > 0) {
-                wordsFrequencyMap.putIfAbsent(key, new AtomicInteger(1));
-                wordsFrequencyMap.get(key).incrementAndGet();
-            }
-        }
-
-    }
-
     private String getTextAsString() {
         if (this.textUrl == null)
             throw new InvalidOperationException("No text URL set for operation");
 
         String text = null;
-
         try (InputStream inputStream = new URL(this.textUrl).openStream()){
             text = inputStreamToString(inputStream);
         } catch (IOException e) {
@@ -161,11 +131,14 @@ public class TextProcessingOperations implements ITextStatistics {
         return text.split("[^\\w]+");
     }
 
+    /**
+     * This method uses AtomicInteger as a thread safe way of incrementing
+     * the number of occurrences of the words in a text. That way we can use
+     * parallel processing provided by Java Stream APIs.
+     */
     private ConcurrentSkipListMap<String, AtomicInteger> createFrequencyMap(String[] wordsArray) {
         var frequencyMap = new ConcurrentSkipListMap<String, AtomicInteger>();
 
-
-/*      //TODO: test and substitute:
         Stream.of(wordsArray)
                 .parallel()
                 .forEach(word -> {
@@ -174,17 +147,6 @@ public class TextProcessingOperations implements ITextStatistics {
                         frequencyMap.get(word).incrementAndGet();
                     }
                 });
-
-  */
-
-        for (int i = 0; i < wordsArray.length; i++) {
-            final String key = wordsArray[i];
-
-            if (key.length() > 0) {
-                frequencyMap.putIfAbsent(key, new AtomicInteger(1));
-                frequencyMap.get(key).incrementAndGet();
-            }
-        }
 
         return frequencyMap;
     }

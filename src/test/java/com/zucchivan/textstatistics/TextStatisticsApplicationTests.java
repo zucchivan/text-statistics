@@ -19,9 +19,9 @@ class TextStatisticsApplicationTests {
 	void textIsProcessed() {
 		var operations = new TextProcessingOperations("https://www.gutenberg.org/files/45839/45839.txt");
 
+		assertTrue(operations.topWords(10).size() > 0);
 		assertTrue(operations.numberOfWords() > 0);
 		assertTrue(operations.numberOfLines() > 0);
-		assertTrue(operations.topWords(10).size() > 0);
 		assertTrue(operations.longestWords(10).size() > 0);
 	}
 
