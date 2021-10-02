@@ -21,9 +21,6 @@ public class TextStatisticsController {
     private static final int DEFAULT_NUMBER_FREQUENT_WORDS = 10;
     private static final int DEFAULT_NUMBER_LONGEST_WORDS = 10;
 
-    @Autowired
-    private TextProcessingOperations operations;
-
     @GetMapping("/process")
     public ResponseEntity<ProcessingResponse> process(@RequestBody ProcessingRequest request) {
         if (request.getUrl() == null || request.getUrl().isBlank()) {
