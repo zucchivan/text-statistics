@@ -4,6 +4,9 @@ import com.zucchivan.textstatistics.model.IWordFrequency;
 
 import java.util.List;
 
+/**
+ * Interface given with challenge's instructions
+ */
 public interface ITextStatistics {
 
     /**

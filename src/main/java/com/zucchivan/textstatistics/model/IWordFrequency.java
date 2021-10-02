@@ -1,7 +1,8 @@
 package com.zucchivan.textstatistics.model;
 
 /**
-* Represents a word and its frequency.
+* Represents a word and its frequency.-
+* Interface given with challenge's instructions
 */
 public interface IWordFrequency {
 

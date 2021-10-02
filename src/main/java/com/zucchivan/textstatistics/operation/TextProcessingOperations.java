@@ -3,6 +3,8 @@ package com.zucchivan.textstatistics.operation;
 import com.zucchivan.textstatistics.exception.InvalidOperationException;
 import com.zucchivan.textstatistics.model.IWordFrequency;
 import com.zucchivan.textstatistics.model.WordFrequency;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,10 +17,10 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-//@Component
 public class TextProcessingOperations implements ITextStatistics {
+
+    private final Logger logger = LoggerFactory.getLogger(TextProcessingOperations.class);
 
     private String textUrl;
     private Map<String, AtomicInteger> wordsFrequencyMap;
@@ -92,7 +94,7 @@ public class TextProcessingOperations implements ITextStatistics {
                 readChars = inputStream.read(c);
             }
         } catch (IOException e) {
-            //TODO
+            logger.error("Error while counting text's lines!", e);
         }
 
         return count;
@@ -136,8 +138,7 @@ public class TextProcessingOperations implements ITextStatistics {
         try (InputStream inputStream = new URL(this.textUrl).openStream()){
             text = inputStreamToString(inputStream);
         } catch (IOException e) {
-            // TODO
-            e.printStackTrace();
+            logger.error("Error while converting InputStream to String!", e);
         }
 
         return text;
