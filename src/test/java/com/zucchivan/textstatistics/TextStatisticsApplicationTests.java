@@ -10,18 +10,19 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @SpringBootTest
 class TextStatisticsApplicationTests {
 
-	@Autowired
-	private TextProcessingOperations operations;
-
 	@Test
 	void contextLoads() {
-		assertTrue(operations != null);
+		//assertTrue(operations != null);
 	}
 
 	@Test
 	void textIsProcessed() {
-		var map = operations.proccessText("https://www.gutenberg.org/files/45839/45839.txt");
-		assertTrue(map.entrySet().size() > 0);
+		var operations = new TextProcessingOperations("https://www.gutenberg.org/files/45839/45839.txt");
+
+		assertTrue(operations.numberOfWords() > 0);
+		assertTrue(operations.numberOfLines() > 0);
+		assertTrue(operations.topWords(10).size() > 0);
+		assertTrue(operations.longestWords(10).size() > 0);
 	}
 
 }
