@@ -5,17 +5,21 @@ import com.zucchivan.textstatistics.model.IWordFrequency;
 import com.zucchivan.textstatistics.model.WordFrequency;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Async;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -23,13 +27,16 @@ public class TextProcessingOperations implements ITextStatistics {
 
     private final Logger logger = LoggerFactory.getLogger(TextProcessingOperations.class);
 
-    private String textUrl;
+    /* Pre-compiled regex pattern for words */
+    private static final Pattern WORDS_REGEX_PATTERN = Pattern.compile("[^\\w]+");
 
+    private String textUrl;
     public TextProcessingOperations(String textUrl) {
         this.textUrl = textUrl;
     }
 
     @Override
+    @Async
     public List<IWordFrequency> topWords(int n) {
         if (this.textUrl == null)
             throw new InvalidOperationException("No text URL set for operation");
@@ -39,9 +46,8 @@ public class TextProcessingOperations implements ITextStatistics {
         var frequencyMap = createFrequencyMap(wordsArray);
 
         List<IWordFrequency> result= frequencyMap.entrySet().stream()
-                .sorted(Comparator.<Map.Entry<String, AtomicInteger>>comparingInt(i -> {
-                        return i.getValue().get();
-                    }).reversed())
+                .sorted(Comparator.<Map.Entry<String, AtomicInteger>>comparingInt(i -> i.getValue().get())
+                        .reversed())
                 .limit(n)
                 .map(m -> new WordFrequency(m.getKey(), m.getValue().get()))
                 .collect(Collectors.toList());
@@ -49,17 +55,47 @@ public class TextProcessingOperations implements ITextStatistics {
         return result;
     }
 
+    @Async
+    public CompletableFuture<List<IWordFrequency>> topWordsAsync(int n) {
+        return CompletableFuture.completedFuture(topWords(n));
+    }
+
     @Override
+    @Async
     public List<String> longestWords(int n) {
-        return null;
+        var wordsArray = this.extractWords(this.getTextAsString());
+
+        var alphabeticalOrderList = Arrays.stream(wordsArray)
+                .sorted(String.CASE_INSENSITIVE_ORDER)
+                .collect(Collectors.toList());
+
+        return alphabeticalOrderList.stream()
+                .distinct()
+                .sorted(Comparator.comparingInt(String::length)
+                        .reversed())
+                .limit(n)
+                .collect(Collectors.toList());
+    }
+
+    @Async
+    public CompletableFuture<List<String>> longestWordsAsync(int n) {
+        return CompletableFuture.completedFuture(longestWords(n));
     }
 
     @Override
+    @Async
     public long numberOfWords() {
-        return 0;
+        var wordsArray = this.extractWords(this.getTextAsString());
+        return wordsArray.length;
+    }
+
+    @Async
+    public CompletableFuture<Long> numberOfWordsAsync() {
+        return CompletableFuture.completedFuture(numberOfWords());
     }
 
     @Override
+    @Async
     public long numberOfLines() {
         if (this.textUrl == null)
             throw new InvalidOperationException("No text URL set for operation");
@@ -100,6 +136,11 @@ public class TextProcessingOperations implements ITextStatistics {
         return count;
     }
 
+    @Async
+    public CompletableFuture<Long> numberOfLinesAsync() {
+        return CompletableFuture.completedFuture(numberOfLines());
+    }
+
     private String getTextAsString() {
         if (this.textUrl == null)
             throw new InvalidOperationException("No text URL set for operation");
@@ -128,7 +169,7 @@ public class TextProcessingOperations implements ITextStatistics {
     }
 
     private String[] extractWords(String text) {
-        return text.split("[^\\w]+");
+        return WORDS_REGEX_PATTERN.split(text);
     }
 
     /**

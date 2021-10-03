@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 @RestController
 public class TextStatisticsController {
@@ -40,17 +41,28 @@ public class TextStatisticsController {
 
         ResponseEntity<ProcessingResponse> response = null;
         try {
-            var frequentWords = operations.topWords(numberOfFrequentWords);
-            var longestWords = operations.longestWords(numberOfLongestWords);
-            var numberOfLines = operations.numberOfLines();
-            var numberOfWords = operations.numberOfWords();
+            /** Keeping track of starting time for performance debugging purposes */
+            long startTime = System.currentTimeMillis();
+
+            /**
+             * Making operations to run in multiple threads
+             */
+            var frequentWords = operations.topWordsAsync(numberOfFrequentWords);
+            var longestWords = operations.longestWordsAsync(numberOfLongestWords);
+            var numberOfLines = operations.numberOfLinesAsync();
+            var numberOfWords = operations.numberOfWordsAsync();
+
+            CompletableFuture.allOf(frequentWords, longestWords, numberOfLines, numberOfWords).join();
+
+            logger.debug("Elapsed time in millis: " + (System.currentTimeMillis() - startTime));
 
             response = ResponseEntity.ok(ProcessingResponse.builder()
-                    .mostFrequentWords(frequentWords)
-                    .numberOfLines(numberOfLines)
-                    .numberOfWords(numberOfWords)
-                    .longestWords(longestWords)
-                    .build());
+                            .mostFrequentWords(frequentWords.get())
+                            .numberOfLines(numberOfLines.get())
+                            .numberOfWords(numberOfWords.get())
+                            .longestWords(longestWords.get())
+                            .message("Text successfully processed!")
+                            .build());
         } catch (Exception e) {
             response = ResponseEntity
                     .internalServerError()

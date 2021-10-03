@@ -2,7 +2,6 @@ package com.zucchivan.textstatistics;
 
 import com.zucchivan.textstatistics.operation.TextProcessingOperations;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -10,18 +9,33 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @SpringBootTest
 class TextStatisticsApplicationTests {
 
+	private static final String DRACULA_TEXT_URL = "https://www.gutenberg.org/files/45839/45839.txt";
+
 	@Test
-	void contextLoads() {
-		//assertTrue(operations != null);
+	void lineCountingTest() {
+		var operations = new TextProcessingOperations(DRACULA_TEXT_URL);
+
+		assertTrue(operations.numberOfLines() > 0);
 	}
 
 	@Test
-	void textIsProcessed() {
-		var operations = new TextProcessingOperations("https://www.gutenberg.org/files/45839/45839.txt");
+	void wordCountingTest() {
+		var operations = new TextProcessingOperations(DRACULA_TEXT_URL);
+
+		assertTrue(operations.numberOfWords() > 0);
+	}
+
+	@Test
+	void wordsFrequencyTest() {
+		var operations = new TextProcessingOperations(DRACULA_TEXT_URL);
 
 		assertTrue(operations.topWords(10).size() > 0);
-		assertTrue(operations.numberOfWords() > 0);
-		assertTrue(operations.numberOfLines() > 0);
+	}
+
+	@Test
+	void longestWordsTest() {
+		var operations = new TextProcessingOperations(DRACULA_TEXT_URL);
+
 		assertTrue(operations.longestWords(10).size() > 0);
 	}
 
