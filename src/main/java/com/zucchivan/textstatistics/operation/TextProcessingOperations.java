@@ -38,8 +38,9 @@ public class TextProcessingOperations implements ITextStatistics {
     @Override
     @Async
     public List<IWordFrequency> topWords(int n) {
-        if (this.textUrl == null)
+        if (this.textUrl == null) {
             throw new InvalidOperationException("No text URL set for operation");
+        }
 
         var text = getTextAsString();
         var wordsArray = extractWords(text);
@@ -72,7 +73,7 @@ public class TextProcessingOperations implements ITextStatistics {
         return alphabeticalOrderList.stream()
                 .distinct()
                 .sorted(Comparator.comparingInt(String::length)
-                        .reversed())
+                            .reversed())
                 .limit(n)
                 .collect(Collectors.toList());
     }
@@ -97,8 +98,9 @@ public class TextProcessingOperations implements ITextStatistics {
     @Override
     @Async
     public long numberOfLines() {
-        if (this.textUrl == null)
+        if (this.textUrl == null) {
             throw new InvalidOperationException("No text URL set for operation");
+        }
 
         long count = 0;
 
@@ -142,8 +144,9 @@ public class TextProcessingOperations implements ITextStatistics {
     }
 
     private String getTextAsString() {
-        if (this.textUrl == null)
+        if (this.textUrl == null) {
             throw new InvalidOperationException("No text URL set for operation");
+        }
 
         String text = null;
         try (InputStream inputStream = new URL(this.textUrl).openStream()){
